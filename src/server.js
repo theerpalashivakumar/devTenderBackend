@@ -6,6 +6,7 @@ const { singUpValidation } = require("./utils/validations")
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
 const cookieParser = require('cookie-parser')
+const {userAuth}=require('./middlewares/Auth')
 
 const User = require("./modles/user")
 const PORT = 5001
@@ -20,7 +21,7 @@ app.post("/signup", async (req, res) => {
     const { firstName, lastName, emailId, password } = req.body
     const passwordHashed = await bcrypt.hash(password, 10)
 
-    console.log(passwordHashed)
+    // console.log(passwordHashed)
 
     const user = new User({
       firstName,
@@ -53,7 +54,6 @@ app.post("/login", async (req, res) => {
     const matchedPassword = await bcrypt.compare(password, user.password)
     if (matchedPassword) {
        const token = await jwt.sign({_id:user._id},"yoyo@123")
-       console.log(token)
        res.cookie("token",token)
 
       res.send("user Login Successfully")
@@ -71,26 +71,10 @@ app.post("/login", async (req, res) => {
 
 //profile 
 
-app.get('/profile', async(req,res)=>{
+app.get('/profile',userAuth, async(req,res)=>{
   try{
-    const cookies = req.cookies;
-   const {token} = cookies;
-    //validation of the token 
-    console.log("token is "+token)
-    if(!token){
-      return res.send("token is not valid")
-    }
-    //send argument like token and secruit key
-    const decodeMsg = await jwt.verify(token,"yoyo@123")
-    const {_id} = decodeMsg 
-    console.log(_id)
-    const user = await User.findById(_id);
-   console.log(user)
+    const user = req.user;
    res.send(user)
-
-
-
-
   }catch(err){
     res.status(500).json({
       message:
