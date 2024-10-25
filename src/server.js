@@ -4,10 +4,13 @@ const connectDB = require("./config/database")
 const { adminAuth } = require("./middlewares/Auth")
 const { singUpValidation } = require("./utils/validations")
 const bcrypt = require("bcrypt")
+const jwt = require("jsonwebtoken")
+const cookieParser = require('cookie-parser')
 
 const User = require("./modles/user")
 const PORT = 5001
 app.use(express.json())
+app.use(cookieParser())
 
 //post method using user signup with validations
 app.post("/signup", async (req, res) => {
@@ -48,10 +51,15 @@ app.post("/login", async (req, res) => {
     }
 
     const matchedPassword = await bcrypt.compare(password, user.password)
-    if (!matchedPassword) {
+    if (matchedPassword) {
+       const token = await jwt.sign({_id:user._id},"yoyo@123")
+       console.log(token)
+       res.cookie("token",token)
+
+      res.send("user Login Successfully")
+    } else {
       return res.status(400).send("Incorrect password.")
     }
-    res.send("user Login Successfully")
   } catch (err) {
     res.status(500).json({
       message:
@@ -60,6 +68,45 @@ app.post("/login", async (req, res) => {
     })
   }
 })
+
+//profile 
+
+app.get('/profile', async(req,res)=>{
+  try{
+    const cookies = req.cookies;
+   const {token} = cookies;
+    //validation of the token 
+    console.log("token is "+token)
+    if(!token){
+      return res.send("token is not valid")
+    }
+    //send argument like token and secruit key
+    const decodeMsg = await jwt.verify(token,"yoyo@123")
+    const {_id} = decodeMsg 
+    console.log(_id)
+    const user = await User.findById(_id);
+   console.log(user)
+   res.send(user)
+
+
+
+
+  }catch(err){
+    res.status(500).json({
+      message:
+        "An internal server error occurred. Please try again later." +
+        err.message,
+    })
+  
+  }
+})
+
+
+
+
+
+
+
 
 //get all users of the database
 app.get("/feed", async (req, res) => {
