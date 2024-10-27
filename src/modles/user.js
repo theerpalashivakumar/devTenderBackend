@@ -1,5 +1,7 @@
 const mongoose = require("mongoose")
-const validator = require('validator')
+const validator = require("validator")
+const jwt = require("jsonwebtoken")
+const bcrypt = require("bcrypt")
 
 const userSchema = mongoose.Schema(
   {
@@ -33,8 +35,7 @@ const userSchema = mongoose.Schema(
       },
     },
     age: {
-      type: Number
-      
+      type: Number,
     },
     gender: {
       type: String,
@@ -51,13 +52,29 @@ const userSchema = mongoose.Schema(
       type: String,
       default:
         "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-        isURL:true
+      isURL: true,
     },
   },
   {
     timestamps: true,
   }
 )
+
+userSchema.methods.getJWT = async function () {
+  const user = this
+  const token = await jwt.sign({ _id: user._id }, "yoyo@123", 
+      {expiresIn: "1d"},
+  )
+  return token
+}
+
+userSchema.methods.comparePassword = async function (userEnterPassword) {
+  const user = this
+  const passwordHash = user.password
+
+  const isPasswordValid = await bcrypt.compare(userEnterPassword, passwordHash)
+  return isPasswordValid
+}
 
 // const User = mongoose.model("User",userSchema)
 module.exports = mongoose.model("User", userSchema)

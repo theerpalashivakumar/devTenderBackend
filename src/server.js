@@ -51,10 +51,17 @@ app.post("/login", async (req, res) => {
       return res.status(400).send("Email Id is Not registerd")
     }
 
-    const matchedPassword = await bcrypt.compare(password, user.password)
+    // const matchedPassword = await bcrypt.compare(password, user.password)
+    const matchedPassword = await user.comparePassword(password)
     if (matchedPassword) {
-       const token = await jwt.sign({_id:user._id},"yoyo@123")
-       res.cookie("token",token)
+      // const token = await jwt.sign({ _id: user._id }, "yoyo@123", {
+      //   expiresIn: "1d",
+      // })
+      const token = await user.getJWT()
+      //cookie expire in one day { expires: new Date(Date.now() + 8 * 3600000) }
+      res.cookie("token", token, {
+        expires: new Date(Date.now() + 8 * 3600000),
+      })
 
       res.send("user Login Successfully")
     } else {
@@ -86,93 +93,34 @@ app.get('/profile',userAuth, async(req,res)=>{
 })
 
 
+app.post('/sendRequestConnection',userAuth,async(req,res)=>{
+  try{
+    // const {token}= req.cookies;
+    // console.log(token)
+    // const {_id} = token
+    // console.log(_id)
+    // const user = await User.findById(_id);
+    const user = req.user;
 
-
-
-
-
-
-//get all users of the database
-app.get("/feed", async (req, res) => {
-  try {
-    const users = await User.find({})
-    res.send(users)
-    if (users.length === 0) {
-      res.send("user are not found ...")
+    if(!user){
+      return res.send("user not found")
     }
-  } catch (err) {
-    res.status(400).send("Something went wrong...", err.message)
+    res.send(user.firstName +" send the request connection")
+  }
+  catch(err){
+    res.status(500).json({
+      message:
+        "An internal server error occurred. Please try again later." +
+        err.message,
+    })
   }
 })
 
-//get one user based on the condition
 
-// app.put("/users", async (req, res) => {
-//    const data = req.body;
 
-//   const firstName = req.body.firstName
-//   const userId = req.body._id
-//   try {
-//     const allowed_update = ["firstName", "lastName", "age", "gender"]
-//     const update_allowed = Object.keys(data).every((key) => {
-//       allowed_update.includes(key)
-//     })
 
-//     if (!update_allowed) {
-//       res.send("we cont updated the data ")
-//     }
-//     const users = await User.findOneAndUpdate(userId, firstName, {
-//       runValidators:true
-//     })
-//     res.send(users)
-//     if (users.length === 0) {
-//       res.send("user are not found ...")
-//     }
-//   } catch (err) {
-//     res.status(400).send("Something went wrong...", err.message)
-//   }
-// })
 
-app.put("/users", async (req, res) => {
-  const data = req.body
-  const userId = req.body._id
 
-  try {
-    // Allowed fields for update
-    const allowed_update = ["firstName", "lastName", "age", "gender", "_id"]
-
-    // Validate update keys
-    const update_allowed = Object.keys(data).every((key) =>
-      allowed_update.includes(key)
-    )
-
-    if (!update_allowed) {
-      return res.status(400).send("Invalid updates! Fields are not allowed.")
-    }
-
-    // Perform update
-    const user = await User.findOneAndUpdate(
-      { _id: userId }, // Filter
-      { $set: data }, // Update with data from the request body
-      {
-        new: true, // Return the updated document
-        runValidators: true, // Ensure validation runs on update
-      }
-    )
-
-    // Check if user is found
-    if (!user) {
-      return res.status(404).send("User not found.")
-    }
-
-    // Send updated user
-    res.send(user)
-    // console.log(user)
-  } catch (err) {
-    console.error(err.message)
-    res.status(500).send("Something went wrong...")
-  }
-})
 
 connectDB()
   .then(() => {

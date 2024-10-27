@@ -8,8 +8,10 @@ const userAuth = async(req, res,next) => {
   if (!token) {
     return res.send("Invalid token")
   }
-  const decomeMsg = await jwt.verify(token,"yoyo@123")
+  const decomeMsg = await jwt.verify(token, "yoyo@123")
+  // console.log(decomeMsg)
   const {_id} = decomeMsg 
+  // console.log(_Id)
 
   const user = await User.findById(_id)
   if(!user){
