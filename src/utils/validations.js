@@ -14,6 +14,18 @@ const singUpValidation = (req) => {
   }
 }
 
+
+const updateValidation =(req)=>{
+    const {firstName,lastName,emailId,age,gender,about} = req.body 
+
+    const allowedEditFeilds = ["firstName","lastName","emailId","age","gender","about"]
+
+    const isEditAllowed = Object.keys(req.body).every(feild =>allowedEditFeilds.includes(feild))
+    return isEditAllowed
+
+}
+
 module.exports = {
   singUpValidation,
+  updateValidation,
 }
