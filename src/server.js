@@ -7,6 +7,7 @@ const cookieParser = require('cookie-parser')
 const authRouter = require('./routes/authRouter')
 const profileRouter = require("./routes/profileRouter")
 const requestRouter = require("./routes/requestRouter")
+const user = require("./routes/user")
 
 
 const PORT = 5001
@@ -17,6 +18,7 @@ app.use(cookieParser())
 app.use('/',authRouter);
 app.use("/", profileRouter)
 app.use("/", requestRouter)
+app.use('/',user)
 
 
 connectDB()

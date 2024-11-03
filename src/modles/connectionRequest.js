@@ -1,26 +1,29 @@
 const mongoose = require('mongoose')
+// mongoose.set("strictPopulate", false)
 
 
-const connectionRequestSchema = new mongoose.Schema({
-
-    fromUserId :{
-        type:mongoose.Schema.Types.ObjectId, required:true,
-       
+const connectionRequestSchema = new mongoose.Schema(
+  {
+    fromUserId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: "User",
     },
-    toUserId:{
-        type:mongoose.Schema.Types.ObjectId, required:true,
-        
+    toUserId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: "User",
     },
-    status:{
-        type:String,
-        enum:{
-            values:["ignored","interested","accepeted","rejected"],
-            message:`{VALUE} is incorect status`
-        }
-    }
-},
-{timestamps:true}
-);
+    status: {
+      type: String,
+      enum: {
+        values: ["ignored", "interested", "accepted", "rejected"],
+        message: `{VALUE} is incorect status`,
+      },
+    },
+  },
+  { timestamps: true }
+)
 
 // these is db level validation of pre.its work every time you save data before it checks
 connectionRequestSchema.pre("save",function(next){

@@ -3,6 +3,7 @@ const router = express.Router()
 const { userAuth } = require("../middlewares/Auth")
 const ConncetionRequest = require("../modles/connectionRequest")
 const User = require("../modles/user")
+// const connectionRequest = require("../modles/connectionRequest")
 
 //request connections
 router.post("/request/send/:status/:toUserId", userAuth, async (req, res) => {
@@ -66,5 +67,42 @@ router.post("/request/send/:status/:toUserId", userAuth, async (req, res) => {
     })
   }
 })
+
+router.post(
+  "/request/review/:status/:requestId",
+  userAuth,
+  async (req, res) => {
+    try {
+      loggedinUser = req.user
+      const { status, requestId } = req.params
+
+      const statusAllowed = ["accepted", "rejected"]
+
+      if (!statusAllowed.includes(status)) {
+        return res
+          .status(400)
+          .json({ message: "bad request of status " + status })
+      }
+
+      const connectionRequest = await ConncetionRequest.findOne({
+        _id: requestId,
+        toUserId: loggedinUser._id,
+        status: "interested",
+      })
+      if (!connectionRequest) {
+        return res.status(400).json({ message: "user request not found" })
+      }
+
+      connectionRequest.status = status
+
+      const data = await connectionRequest.save()
+      res
+        .status(200)
+        .json({ message: `connection request   ${status }`, data })
+    } catch (err) {
+      res.status(500).json({ message: err.message })
+    }
+  }
+)
 
 module.exports = router
