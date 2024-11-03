@@ -1,23 +1,63 @@
-
-
-const express = require('express');
-const router = express.Router();
-const {userAuth}=require('../middlewares/Auth')
+const express = require("express")
+const router = express.Router()
+const { userAuth } = require("../middlewares/Auth")
+const ConncetionRequest = require("../modles/connectionRequest")
+const User = require("../modles/user")
 
 //request connections
-router.post("/sendRequestConnection", userAuth, async (req, res) => {
+router.post("/request/send/:status/:toUserId", userAuth, async (req, res) => {
   try {
-    // const {token}= req.cookies;
-    // console.log(token)
-    // const {_id} = token
-    // console.log(_id)
-    // const user = await User.findById(_id);
-    const user = req.user
+    const fromUserId = req.user._id
+    const toUserId = req.params.toUserId
+    const status = req.params.status
 
-    if (!user) {
+    if (!fromUserId) {
       return res.send("user not found")
     }
-    res.send(user.firstName + " send the request connection")
+
+    // if(fromUserId===toUserId){
+    //   return res.status(400).json({message:"connt send request your self"})
+    // }
+
+    const statusAllowed = ["ignored", "interested"]
+
+    if (!statusAllowed.includes(status)) {
+      return res
+        .status(400)
+        .json({ message: "it's a bad status request " + status })
+    }
+
+    // checking the exsting user
+
+    const toUser = await User.findById(toUserId)
+
+    if (!toUser) {
+      return res.status(400).json({ message: "invalid to user ..." })
+    }
+
+    const existingUserConnection = await ConncetionRequest.findOne({
+      $or: [
+        { fromUserId, toUserId },
+        { fromUserId: toUserId, toUserId: fromUserId },
+      ],
+    })
+
+    if (existingUserConnection) {
+      return res.status(400).json({ message: "connection already exsiting" })
+    }
+
+    const connectionRequest = new ConncetionRequest({
+      fromUserId,
+      toUserId,
+      status,
+    })
+
+    const savedData = await connectionRequest.save()
+    res.json({
+      // message: "Conncetion request send Successfully..",
+      message: req.user.firstName + "  is  " + status + "  " + toUser.firstName,
+      data: savedData,
+    })
   } catch (err) {
     res.status(500).json({
       message:
@@ -27,5 +67,4 @@ router.post("/sendRequestConnection", userAuth, async (req, res) => {
   }
 })
 
-module.exports=router;
-
+module.exports = router
