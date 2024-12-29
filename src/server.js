@@ -1,18 +1,25 @@
 const express = require("express")
 const app = express()
 const connectDB = require("./config/database")
-
 const cookieParser = require('cookie-parser')
-
 const authRouter = require('./routes/authRouter')
 const profileRouter = require("./routes/profileRouter")
 const requestRouter = require("./routes/requestRouter")
 const user = require("./routes/user")
+const cors = require("cors")
 
+
+
+const corsOptions = {
+  origin: "http://localhost:5173", 
+  credentials: true, 
+}
 
 const PORT = 5001
-app.use(express.json())
+// Handle OPTIONS preflight requests
+app.options('*', cors(corsOptions));
 app.use(cookieParser())
+app.use(cors())
 
 
 app.use('/',authRouter);

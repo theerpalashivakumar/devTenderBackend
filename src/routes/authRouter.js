@@ -26,7 +26,18 @@ router.post("/signup", async (req, res) => {
       password: passwordHashed,
     })
     await user.save()
-    res.send("User Added Succefully..")
+    // res.send("User Added Succefully..")
+    res.status(201).json({
+      message: "User Added Successfully",
+      user: {
+        firstName,
+        lastName,
+        emailId,
+        photoUrl: user.photoUrl || null,
+        skills: user.skills || [],
+      }
+      
+    })
   } catch (err) {
     res.status(500).json({
       message:
@@ -55,11 +66,22 @@ router.post("/login", async (req, res) => {
       // })
       const token = await user.getJWT()
       //cookie expire in one day { expires: new Date(Date.now() + 8 * 3600000) }
-      res.cookie("token", token, {
-        expires: new Date(Date.now() + 8 * 3600000),
-      })
+      res.cookie(
+        "token",
+        token,
+        {
+          expires: new Date(Date.now() + 8 * 3600000),
+        },
+        // {
+        //   httpOnly: true, // Prevent access to cookie via JavaScript
+        //   secure: process.env.NODE_ENV === "production", // Set to true if using HTTPS
+        //   sameSite: "None", // Allow cross-origin requests with cookies
+        //   maxAge: 3600000,
+        // }
+      )
+      console.log(token)
 
-      res.send("user Login Successfully")
+      res.send(user)
     } else {
       return res.status(400).send("Incorrect password.")
     }
