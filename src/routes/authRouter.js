@@ -49,9 +49,9 @@ router.post("/signup", async (req, res) => {
 
 //login
 router.post("/login", async (req, res) => {
+  console.log("Request body:", req.body)
   try {
     const { emailId, password } = req.body
-
     //get user from the database based on the emailId
     const user = await User.findOne({ emailId })
     if (!user) {
@@ -72,14 +72,12 @@ router.post("/login", async (req, res) => {
         {
           expires: new Date(Date.now() + 8 * 3600000),
         },
-        // {
-        //   httpOnly: true, // Prevent access to cookie via JavaScript
-        //   secure: process.env.NODE_ENV === "production", // Set to true if using HTTPS
-        //   sameSite: "None", // Allow cross-origin requests with cookies
-        //   maxAge: 3600000,
-        // }
+        {
+          httpOnly: true, // Prevent access via JavaScript
+          secure: false, // Set to true in production (HTTPS required)
+          sameSite: "Lax", // Prevent cross-site request forgery
+        }
       )
-      console.log(token)
 
       res.send(user)
     } else {

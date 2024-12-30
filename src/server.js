@@ -1,32 +1,31 @@
 const express = require("express")
 const app = express()
 const connectDB = require("./config/database")
-const cookieParser = require('cookie-parser')
-const authRouter = require('./routes/authRouter')
+const cookieParser = require("cookie-parser")
+const authRouter = require("./routes/authRouter")
 const profileRouter = require("./routes/profileRouter")
 const requestRouter = require("./routes/requestRouter")
 const user = require("./routes/user")
 const cors = require("cors")
 
+app.use(express.json());
 
-
-const corsOptions = {
-  origin: "http://localhost:5173", 
-  credentials: true, 
-}
 
 const PORT = 5001
-// Handle OPTIONS preflight requests
-app.options('*', cors(corsOptions));
+
 app.use(cookieParser())
-app.use(cors())
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+)
+app.use(express.json())
 
-
-app.use('/',authRouter);
+app.use("/", authRouter)
 app.use("/", profileRouter)
 app.use("/", requestRouter)
-app.use('/',user)
-
+app.use("/", user)
 
 connectDB()
   .then(() => {
