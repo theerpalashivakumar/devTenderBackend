@@ -49,7 +49,6 @@ router.post("/signup", async (req, res) => {
 
 //login
 router.post("/login", async (req, res) => {
-  console.log("Request body:", req.body)
   try {
     const { emailId, password } = req.body
     //get user from the database based on the emailId
